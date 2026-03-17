@@ -4,13 +4,12 @@ BOLTTRIP
 A Django-based web application to manage travel packages, bookings, and more.
 
 🚀 Quick Start (Single Terminal)
-# Clone repo
+# Clone the repo
 git clone <https://github.com/ahmadsaif12/BoltTrip.git> && cd <bolttrip>
 
-# Create & activate virtual environment
-python -m venv venv && source venv/bin/activate  # Linux/Mac
-# OR (Windows)
-# python -m venv venv && venv\Scripts\activate
+# Create virtual env
+python -m venv venv && source venv/bin/activate  # Linux
+python -m venv venv && venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
