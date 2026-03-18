@@ -13,6 +13,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "1"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
+AUTH_USER_MODEL = "users.User"
 #Applications
 
 DJANGO_APPS = [
@@ -30,6 +31,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'apps.users',  
+    'apps.misc',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
