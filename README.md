@@ -323,7 +323,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For support and questions:
 - **Issues**: [GitHub Issues](https://github.com/ahmadsaif12/BoltTrip/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/ahmadsaif12/BoltTrip/discussions)
-- **Email**: ahmadsaif12@example.com
+- **Email**: ahmads87237@gmail.com
 
 ---
 
