@@ -13,6 +13,18 @@ class AmenitySerializer(serializers.ModelSerializer):
         ]
 
 
+class AmenityWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Amenity
+        fields = [
+            "id",
+            "name",
+            "category",
+            "icon_url",
+        ]
+        read_only_fields = ["id"]
+
+
 class RoomTypeSerializer(serializers.ModelSerializer):
     amenities = AmenitySerializer(many=True, read_only=True)
 
@@ -29,6 +41,22 @@ class RoomTypeSerializer(serializers.ModelSerializer):
             "room_image_urls",
             "amenities",
         ]
+
+
+class RoomTypeWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoomType
+        fields = [
+            "id",
+            "name",
+            "bed_type",
+            "capacity",
+            "price_per_night",
+            "quantity",
+            "room_image_urls",
+            "amenities",
+        ]
+        read_only_fields = ["id"]
 
 
 class HotelSerializer(serializers.ModelSerializer):

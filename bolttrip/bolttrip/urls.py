@@ -22,5 +22,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/flights/', include('apps.flights.urls')),
     path('api/hotel/', include('apps.hotel.urls')),
+    path('api/tours/', include('apps.tours.urls')),
+    path('api/packages/', include('apps.packages.urls')),
+    path('api/activities/', include('apps.activities.urls')),
+    path('api/planner/', include('apps.planner.urls')),
+    path('api/content/', include('apps.content.urls')),
 ]
