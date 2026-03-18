@@ -1,6 +1,7 @@
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser, AllowAny
 from apps.misc.schema import (
     tour_package_featured_schema,
     tour_package_viewset_schema,
@@ -26,6 +27,11 @@ class TourPackageViewSet(viewsets.ModelViewSet):
         if self.action in {"create", "partial_update"}:
             return TourPackageWriteSerializer
         return TourPackageSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+        return [AllowAny()]
 
     @tour_package_featured_schema
     @action(detail=False, methods=["get"], url_path="featured")

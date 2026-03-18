@@ -1,5 +1,10 @@
+from decimal import Decimal
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from apps.misc.models import BaseModel
 
 
@@ -22,6 +27,20 @@ class PaymentStatus(models.TextChoices):
     PAID = "paid", "Paid"
     FAILED = "failed", "Failed"
     REFUNDED = "refunded", "Refunded"
+
+
+class PaymentMethod(models.TextChoices):
+    CARD = "card", "Card"
+    BANK_TRANSFER = "bank_transfer", "Bank Transfer"
+    WALLET = "wallet", "Wallet"
+    CASH = "cash", "Cash"
+    OTHER = "other", "Other"
+
+
+class TravelerGender(models.TextChoices):
+    MALE = "male", "Male"
+    FEMALE = "female", "Female"
+    OTHER = "other", "Other"
 
 
 class Booking(BaseModel):
@@ -74,11 +93,20 @@ class Booking(BaseModel):
     booking_reference = models.CharField(max_length=50, unique=True)
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
-    travelers_count = models.PositiveIntegerField(default=1)
+    travelers_count = models.PositiveSmallIntegerField(default=1)
 
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    currency = models.CharField(max_length=10, default="USD")
+    total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+    paid_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+    currency = models.CharField(max_length=3, default="USD")
 
     contact_name = models.CharField(max_length=120)
     contact_email = models.EmailField()
@@ -91,6 +119,33 @@ class Booking(BaseModel):
     class Meta:
         ordering = ["-created_at"]
 
+    def clean(self):
+        selected_targets = {
+            BookingType.PACKAGE: self.package_id,
+            BookingType.HOTEL: self.hotel_id,
+            BookingType.ACTIVITY: self.activity_id,
+            BookingType.GUIDE: self.guide_id,
+        }
+        populated_targets = [key for key, value in selected_targets.items() if value]
+
+        if len(populated_targets) != 1:
+            raise ValidationError("A booking must reference exactly one bookable item.")
+
+        if self.booking_type not in populated_targets:
+            raise ValidationError(
+                {"booking_type": "Booking type must match the selected package, hotel, activity, or guide."}
+            )
+
+        if self.end_date and self.end_date < self.start_date:
+            raise ValidationError({"end_date": "End date cannot be earlier than start date."})
+
+        if self.paid_amount > self.total_amount:
+            raise ValidationError({"paid_amount": "Paid amount cannot be greater than total amount."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.booking_reference
 
@@ -102,8 +157,17 @@ class BookingTraveler(BaseModel):
         related_name="travelers",
     )
     full_name = models.CharField(max_length=120)
-    age = models.PositiveSmallIntegerField(blank=True, null=True)
-    gender = models.CharField(max_length=20, blank=True, null=True)
+    age = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(110)],
+    )
+    gender = models.CharField(
+        max_length=20,
+        choices=TravelerGender.choices,
+        blank=True,
+        null=True,
+    )
     nationality = models.CharField(max_length=80, blank=True, null=True)
     passport_number = models.CharField(max_length=50, blank=True, null=True)
 
@@ -121,9 +185,13 @@ class BookingPayment(BaseModel):
         related_name="payments",
     )
     transaction_id = models.CharField(max_length=100, blank=True, null=True)
-    payment_method = models.CharField(max_length=50)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=10, default="USD")
+    payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices)
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+    currency = models.CharField(max_length=3, default="USD")
     payment_status = models.CharField(
         max_length=20,
         choices=PaymentStatus.choices,
@@ -134,6 +202,14 @@ class BookingPayment(BaseModel):
 
     class Meta:
         ordering = ["-created_at"]
+
+    def clean(self):
+        if self.amount <= 0:
+            raise ValidationError({"amount": "Payment amount must be greater than zero."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.booking.booking_reference} - {self.amount}"

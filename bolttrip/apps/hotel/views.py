@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser, AllowAny
 from apps.misc.schema import (
     hotel_amenities_schema,
     hotel_amenity_detail_schema,
@@ -14,6 +15,7 @@ from .serializers import (
     AmenitySerializer,
     AmenityWriteSerializer,
     HotelSerializer,
+    HotelWriteSerializer,
     RoomTypeSerializer,
     RoomTypeWriteSerializer,
 )
@@ -22,11 +24,20 @@ from .serializers import (
 @hotel_viewset_schema
 class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.prefetch_related("amenities", "rooms")
-    serializer_class = HotelSerializer
     http_method_names = ["get", "post", "patch", "delete"]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name", "city", "country", "property_type"]
     ordering_fields = ["price_per_night", "rating", "created_at"]
+
+    def get_serializer_class(self):
+        if self.action in {"create", "partial_update"}:
+            return HotelWriteSerializer
+        return HotelSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+        return [AllowAny()]
 
     @hotel_amenities_schema[0]
     @hotel_amenities_schema[1]

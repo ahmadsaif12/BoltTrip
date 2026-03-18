@@ -1,5 +1,7 @@
+from decimal import Decimal
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import MinValueValidator, MaxValueValidator
 from apps.misc.models import BaseModel
 # Create your models here.
 
@@ -62,13 +64,13 @@ class TravelPackage(BaseModel):
         related_name="packages",
     )
 
-    duration_days = models.PositiveSmallIntegerField(default=1)
-    duration_nights = models.PositiveSmallIntegerField(default=0)
+    duration_days = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(365)])
+    duration_nights = models.PositiveSmallIntegerField(default=0, validators=[MinValueValidator(0)])
     location_text = models.CharField(max_length=180)
-    rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0, validators=[MinValueValidator(Decimal('0.0')), MaxValueValidator(Decimal('5.0'))])
     review_count = models.PositiveIntegerField(default=0)
-    base_price = models.DecimalField(max_digits=10, decimal_places=2)
-    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    base_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
+    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     currency = models.CharField(max_length=10, default="USD")
     cover_image_url = models.URLField()
     gallery_image_urls = models.JSONField(default=list, blank=True)

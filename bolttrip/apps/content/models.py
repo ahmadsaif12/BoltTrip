@@ -1,5 +1,7 @@
+from decimal import Decimal
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import MinValueValidator, MaxValueValidator
 from apps.misc.models import BaseModel
 
 
@@ -39,7 +41,7 @@ class Story(BaseModel):
     destination = models.CharField(max_length=120, blank=True, null=True)
     country = models.CharField(max_length=120, blank=True, null=True)
     published_at = models.DateTimeField(blank=True, null=True)
-    read_time_minutes = models.PositiveSmallIntegerField(default=5)
+    read_time_minutes = models.PositiveSmallIntegerField(default=5, validators=[MinValueValidator(1), MaxValueValidator(300)])
     is_featured = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
@@ -62,7 +64,7 @@ class Testimonial(BaseModel):
     location = models.CharField(max_length=120, blank=True, null=True)
     avatar_url = models.URLField(blank=True, null=True)
     quote = models.TextField()
-    rating = models.DecimalField(max_digits=2, decimal_places=1, default=5.0)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=5.0, validators=[MinValueValidator(Decimal('0.0')), MaxValueValidator(Decimal('5.0'))])
     is_featured = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)

@@ -1,6 +1,7 @@
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser, AllowAny
 from apps.misc.schema import (
     activity_category_featured_schema,
     activity_category_viewset_schema,
@@ -27,6 +28,11 @@ class ActivityViewSet(viewsets.ModelViewSet):
         if self.action in {"create", "partial_update"}:
             return ActivityWriteSerializer
         return ActivitySerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+        return [AllowAny()]
 
     @activity_featured_schema
     @action(detail=False, methods=["get"], url_path="featured")

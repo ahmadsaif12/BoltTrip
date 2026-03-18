@@ -1,4 +1,5 @@
 from rest_framework import filters, viewsets
+from rest_framework.permissions import IsAdminUser, AllowAny
 from apps.misc.schema import (
     airline_viewset_schema,
     airport_viewset_schema,
@@ -55,6 +56,11 @@ class FlightViewSet(viewsets.ModelViewSet):
             return FlightWriteSerializer
         return FlightSerializer
 
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+        return [AllowAny()]
+
 
 @flight_search_viewset_schema
 class FlightSearchViewSet(viewsets.ModelViewSet):
@@ -68,3 +74,8 @@ class FlightSearchViewSet(viewsets.ModelViewSet):
         if self.action in {"create", "partial_update"}:
             return FlightSearchWriteSerializer
         return FlightSearchSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+        return [AllowAny()]

@@ -22,6 +22,11 @@ def password_validator(value):
     return value
 
 
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -180,21 +185,40 @@ class GuideProfileCompareSerializer(serializers.ModelSerializer):
             "affiliated_travel_company",
         ]
 
-    def get_region_served(self, obj):
+    def get_region_served(self, obj) -> list:
+        """Get list of regions served by the guide."""
         return obj.region_expertise or []
 
 
 class WishlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wishlist
-        exclude = ["created_by", "updated_by"]
+        fields = [
+            "id",
+            "user",
+            "destination_name",
+            "description",
+            "package",
+            "hotel",
+            "guide",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        exclude = ["created_by", "updated_by"]
+        fields = [
+            "id",
+            "user",
+            "message",
+            "notification_type",
+            "is_read",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
@@ -212,6 +236,10 @@ class UserOTPSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
+class OTPRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
 class OTPVerifySerializer(serializers.Serializer):
     user_id = serializers.UUIDField()
     otp = serializers.CharField(max_length=6)
@@ -224,6 +252,10 @@ class OTPVerifySerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid or expired OTP.")
         attrs["otp_record"] = otp_record
         return attrs
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
@@ -245,3 +277,23 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(self.validated_data["new_password"])
         user.save(update_fields=["password"])
         return user
+
+
+class MostBookedGuideSerializer(serializers.ModelSerializer):
+    guide_name = serializers.CharField(source="user.name", read_only=True)
+    bookings_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = GuideProfile
+        fields = [
+            "id",
+            "guide_name",
+            "profile_photo",
+            "guide_type",
+            "base_city",
+            "base_country",
+            "rating",
+            "is_verified",
+            "is_available",
+            "bookings_count",
+        ]

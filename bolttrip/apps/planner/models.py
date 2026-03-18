@@ -1,6 +1,8 @@
+from decimal import Decimal
 from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import MinValueValidator, MaxValueValidator
 from apps.misc.models import BaseModel
 
 
@@ -18,11 +20,11 @@ class ItineraryTemplate(BaseModel):
     short_description = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     start_date = models.DateField(blank=True, null=True)
-    duration_days = models.PositiveSmallIntegerField(default=1)
-    traveler_capacity = models.PositiveIntegerField(default=1)
-    base_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    duration_days = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(365)])
+    traveler_capacity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(500)])
+    base_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     currency = models.CharField(max_length=10, default="USD")
-    rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0, validators=[MinValueValidator(Decimal('0.0')), MaxValueValidator(Decimal('5.0'))])
     hero_image_url = models.URLField()
     gallery_image_urls = models.JSONField(default=list, blank=True)
     highlights = models.JSONField(default=list, blank=True)
@@ -75,8 +77,8 @@ class TravelPlan(BaseModel):
     country = models.CharField(max_length=120)
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
-    travelers_count = models.PositiveIntegerField(default=1)
-    estimated_budget = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    travelers_count = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(500)])
+    estimated_budget = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     currency = models.CharField(max_length=10, default="USD")
     status = models.CharField(
         max_length=20,
@@ -105,7 +107,7 @@ class TravelPlanDay(BaseModel):
         on_delete=models.CASCADE,
         related_name="days",
     )
-    day_number = models.PositiveSmallIntegerField()
+    day_number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(365)])
     title = models.CharField(max_length=180)
     description = models.TextField(blank=True, null=True)
 

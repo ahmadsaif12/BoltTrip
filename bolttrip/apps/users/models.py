@@ -3,6 +3,8 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from decimal import Decimal
 
 from apps.misc.models import BaseModel
 
@@ -212,26 +214,26 @@ class GuideProfile(TimeStampedModel):
     license_expiry = models.DateField()
     tourism_board_id = models.CharField(max_length=100, blank=True, null=True)
     is_verified = models.BooleanField(default=False)
-    years_of_experience = models.PositiveIntegerField()
+    years_of_experience = models.PositiveIntegerField(validators=[MinValueValidator(0), MaxValueValidator(70)])
     certifications = models.JSONField(default=list, blank=True)
     languages_certified = models.JSONField(default=list, blank=True)
     previous_companies = models.TextField(blank=True, null=True)
     total_groups_led = models.PositiveIntegerField(default=0)
-    daily_rate = models.DecimalField(max_digits=8, decimal_places=2)
+    daily_rate = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
     custom_rates = models.JSONField(default=list, blank=True)
     unavailable_dates = models.JSONField(default=list, blank=True)
     accepts_group_bookings = models.BooleanField(default=True)
-    max_group_size = models.PositiveIntegerField(default=10)
+    max_group_size = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1), MaxValueValidator(500)])
     accepts_last_minute = models.BooleanField(default=True)
-    last_minute_buffer_days = models.PositiveIntegerField(default=2)
+    last_minute_buffer_days = models.PositiveIntegerField(default=2, validators=[MinValueValidator(0), MaxValueValidator(30)])
     linked_packages = models.JSONField(default=list, blank=True)
     base_city = models.CharField(max_length=100)
     base_country = models.CharField(max_length=100)
     available_regions = models.JSONField(default=list, blank=True)
     willing_to_travel = models.BooleanField(default=True)
-    max_travel_distance_km = models.PositiveIntegerField(default=100)
+    max_travel_distance_km = models.PositiveIntegerField(default=100, validators=[MinValueValidator(1), MaxValueValidator(10000)])
     gallery_images = models.JSONField(default=list, blank=True)
-    rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0, validators=[MinValueValidator(Decimal('0.0')), MaxValueValidator(Decimal('5.0'))])
     review_tags = models.JSONField(default=list, blank=True)
     notify_booking = models.BooleanField(default=True)
     notify_reviews = models.BooleanField(default=True)

@@ -1,5 +1,7 @@
+from decimal import Decimal
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import MinValueValidator, MaxValueValidator
 from apps.misc.models import BaseModel
 
 
@@ -42,17 +44,17 @@ class Activity(BaseModel):
     country = models.CharField(max_length=120)
     location_text = models.CharField(max_length=180, blank=True, null=True)
 
-    duration_hours = models.PositiveSmallIntegerField(default=1)
-    duration_days = models.PositiveSmallIntegerField(default=1)
-    min_group_size = models.PositiveSmallIntegerField(default=1)
-    max_group_size = models.PositiveSmallIntegerField(default=10)
-    min_age = models.PositiveSmallIntegerField(blank=True, null=True)
+    duration_hours = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
+    duration_days = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(0)])
+    min_group_size = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
+    max_group_size = models.PositiveSmallIntegerField(default=10, validators=[MinValueValidator(1), MaxValueValidator(500)])
+    min_age = models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(110)])
 
-    base_price = models.DecimalField(max_digits=10, decimal_places=2)
-    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    base_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
+    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     currency = models.CharField(max_length=10, default="USD")
 
-    rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0, validators=[MinValueValidator(Decimal('0.0')), MaxValueValidator(Decimal('5.0'))])
     review_count = models.PositiveIntegerField(default=0)
 
     cover_image_url = models.URLField()

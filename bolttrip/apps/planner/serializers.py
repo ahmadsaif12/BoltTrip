@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework import serializers
 from .models import (
     ItineraryTemplate,
@@ -102,6 +103,16 @@ class TravelPlanSerializer(serializers.ModelSerializer):
 
 
 class TravelPlanWriteSerializer(serializers.ModelSerializer):
+    travelers_count = serializers.IntegerField(min_value=1, max_value=50)
+    estimated_budget = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+        required=False,
+        allow_null=True,
+    )
+    currency = serializers.CharField(min_length=3, max_length=3, required=False)
+
     class Meta:
         model = TravelPlan
         fields = [
@@ -119,6 +130,19 @@ class TravelPlanWriteSerializer(serializers.ModelSerializer):
             "notes",
         ]
         read_only_fields = ["id"]
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        # normalize currency
+        if "currency" in attrs and attrs["currency"]:
+            attrs["currency"] = attrs["currency"].upper()
+
+        # validate start/end dates
+        start_date = attrs.get("start_date", getattr(self.instance, "start_date", None))
+        end_date = attrs.get("end_date", getattr(self.instance, "end_date", None))
+        if start_date and end_date and end_date < start_date:
+            raise serializers.ValidationError({"end_date": "End date cannot be earlier than start date."})
+        return attrs
 
 
 class PlannerFaqSerializer(serializers.ModelSerializer):

@@ -1,12 +1,6 @@
+from decimal import Decimal
 from rest_framework import serializers
-from .models import (
-    ContentCategory,
-    FAQ,
-    NewsletterBlock,
-    PromoBanner,
-    Story,
-    Testimonial,
-)
+from .models import ContentCategory, FAQ, NewsletterBlock, PromoBanner, Story, Testimonial
 
 
 class ContentCategorySerializer(serializers.ModelSerializer):
@@ -45,6 +39,8 @@ class StorySerializer(serializers.ModelSerializer):
 
 
 class StoryWriteSerializer(serializers.ModelSerializer):
+    read_time_minutes = serializers.IntegerField(min_value=1, max_value=240, required=False)
+
     class Meta:
         model = Story
         fields = [
@@ -68,6 +64,8 @@ class StoryWriteSerializer(serializers.ModelSerializer):
 
 
 class TestimonialSerializer(serializers.ModelSerializer):
+    rating = serializers.DecimalField(max_digits=2, decimal_places=1, min_value=Decimal("0.0"), max_value=Decimal("5.0"))
+
     class Meta:
         model = Testimonial
         fields = [
