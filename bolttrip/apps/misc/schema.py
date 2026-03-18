@@ -1,6 +1,28 @@
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 
 
+booking_viewset_schema = extend_schema_view(
+    list=extend_schema(tags=["Bookings"], operation_id="bookings_list"),
+    retrieve=extend_schema(tags=["Bookings"], operation_id="bookings_retrieve"),
+    create=extend_schema(tags=["Bookings"], operation_id="bookings_create"),
+    partial_update=extend_schema(tags=["Bookings"], operation_id="bookings_update"),
+    destroy=extend_schema(tags=["Bookings"], operation_id="bookings_delete"),
+)
+booking_traveler_viewset_schema = extend_schema_view(
+    list=extend_schema(tags=["Booking Travelers"], operation_id="booking_travelers_list"),
+    retrieve=extend_schema(tags=["Booking Travelers"], operation_id="booking_travelers_retrieve"),
+    create=extend_schema(tags=["Booking Travelers"], operation_id="booking_travelers_create"),
+    partial_update=extend_schema(tags=["Booking Travelers"], operation_id="booking_travelers_update"),
+    destroy=extend_schema(tags=["Booking Travelers"], operation_id="booking_travelers_delete"),
+)
+booking_payment_viewset_schema = extend_schema_view(
+    list=extend_schema(tags=["Booking Payments"], operation_id="booking_payments_list"),
+    retrieve=extend_schema(tags=["Booking Payments"], operation_id="booking_payments_retrieve"),
+    create=extend_schema(tags=["Booking Payments"], operation_id="booking_payments_create"),
+    partial_update=extend_schema(tags=["Booking Payments"], operation_id="booking_payments_update"),
+    destroy=extend_schema(tags=["Booking Payments"], operation_id="booking_payments_delete"),
+)
+
 activity_viewset_schema = extend_schema_view(
     list=extend_schema(tags=["Activities"]),
     retrieve=extend_schema(tags=["Activities"]),
