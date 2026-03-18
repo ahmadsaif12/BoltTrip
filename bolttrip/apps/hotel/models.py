@@ -67,7 +67,7 @@ class RoomType(BaseModel):
         ("double","Double"),
         ("queen","Queen"),
         ("king","King"),
-        ("twin")
+        ("twin", "Twin"),
     ]
 
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name="rooms")

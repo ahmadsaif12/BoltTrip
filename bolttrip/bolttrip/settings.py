@@ -12,6 +12,7 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "1"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+AUTH_USER_MODEL = 'users.User'
 
 #Applications
 
@@ -26,10 +27,12 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
      'rest_framework',
+     'drf_spectacular',
 ]
 
 LOCAL_APPS = [
     'apps.users',  
+    'apps.misc',
     'apps.hotel',
     'apps.flights',
 ]
@@ -103,3 +106,13 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'BoltTrip API',
+    'DESCRIPTION': 'API documentation for BoltTrip.',
+    'VERSION': '1.0.0',
+}

@@ -1,7 +1,6 @@
 import uuid
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.core.validators import MinValueValidator
 from django.db import models
 from .manager import CustomUserManager
 from apps.misc.models import BaseModel
@@ -99,7 +98,7 @@ class GuideProfile(models.Model):
         ('suspended', 'Suspended'),
     ]
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='guide_profile')
-    travel_company = models.ForeignKey('tourism_company.TourismCompany', on_delete=models.SET_NULL, null=True, blank=True)
+    travel_company = models.CharField(max_length=255, blank=True, null=True)
     profile_photo = models.TextField(blank=True, null=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     dob = models.DateField()
@@ -126,7 +125,7 @@ class GuideProfile(models.Model):
     max_group_size = models.PositiveIntegerField(default=10)
     accepts_last_minute = models.BooleanField(default=True)
     last_minute_buffer_days = models.PositiveIntegerField(default=2)
-    linked_packages = models.ManyToManyField('tour_package.TourPackage', blank=True)
+    linked_packages = models.JSONField(default=list, blank=True)
     base_city = models.CharField(max_length=100)
     base_country = models.CharField(max_length=100)
     available_regions = models.CharField(max_length=1000, blank=True, null=True)
@@ -157,7 +156,7 @@ class Wishlist(BaseModel):
     destination_name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     added_at = models.DateTimeField(auto_now_add=True)
-    package = models.ForeignKey('tour_package.TourPackage', on_delete=models.CASCADE, null=True, blank=True, related_name='wishlist_packages')
+    package = models.CharField(max_length=255, null=True, blank=True)
     hotel = models.ForeignKey('hotel.Hotel', on_delete=models.CASCADE, null=True, blank=True, related_name='wishlist_hotels')
     guide = models.ForeignKey('users.GuideProfile', on_delete=models.CASCADE, null=True, blank=True, related_name='wishlist_guides')
     
