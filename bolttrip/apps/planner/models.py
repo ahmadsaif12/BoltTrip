@@ -4,6 +4,12 @@ from django.utils.text import slugify
 from apps.misc.models import BaseModel
 
 
+class TravelPlanStatus(models.TextChoices):
+    DRAFT = "draft", "Draft"
+    READY = "ready", "Ready"
+    BOOKED = "booked", "Booked"
+
+
 class ItineraryTemplate(BaseModel):
     title = models.CharField(max_length=180)
     slug = models.SlugField(max_length=200, unique=True, blank=True)
@@ -59,12 +65,6 @@ class SmartSuggestion(BaseModel):
 
 
 class TravelPlan(BaseModel):
-    PLAN_STATUS_CHOICES = [
-        ("draft", "Draft"),
-        ("ready", "Ready"),
-        ("booked", "Booked"),
-    ]
-
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -78,7 +78,11 @@ class TravelPlan(BaseModel):
     travelers_count = models.PositiveIntegerField(default=1)
     estimated_budget = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     currency = models.CharField(max_length=10, default="USD")
-    status = models.CharField(max_length=20, choices=PLAN_STATUS_CHOICES, default="draft")
+    status = models.CharField(
+        max_length=20,
+        choices=TravelPlanStatus.choices,
+        default=TravelPlanStatus.DRAFT,
+    )
     based_on_template = models.ForeignKey(
         ItineraryTemplate,
         on_delete=models.SET_NULL,

@@ -1,8 +1,7 @@
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import ContentCategory, FAQ, NewsletterBlock, PromoBanner, Story, Testimonial
-from .schema import (
+from apps.misc.schema import (
     content_category_viewset_schema,
     faq_viewset_schema,
     newsletter_block_viewset_schema,
@@ -12,6 +11,7 @@ from .schema import (
     testimonial_featured_schema,
     testimonial_viewset_schema,
 )
+from .models import ContentCategory, FAQ, NewsletterBlock, PromoBanner, Story, Testimonial
 from .serializers import (
     ContentCategorySerializer,
     FAQSerializer,

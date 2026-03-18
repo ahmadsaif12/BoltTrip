@@ -2,6 +2,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from apps.misc.schema import (
+    hotel_amenities_schema,
+    hotel_amenity_detail_schema,
+    hotel_room_detail_schema,
+    hotel_rooms_schema,
+    hotel_viewset_schema,
+)
 from .models import Amenity, Hotel, RoomType
 from .serializers import (
     AmenitySerializer,
@@ -9,13 +16,6 @@ from .serializers import (
     HotelSerializer,
     RoomTypeSerializer,
     RoomTypeWriteSerializer,
-)
-from .schema import (
-    hotel_amenities_schema,
-    hotel_amenity_detail_schema,
-    hotel_room_detail_schema,
-    hotel_rooms_schema,
-    hotel_viewset_schema,
 )
 
 

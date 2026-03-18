@@ -1,6 +1,13 @@
 from rest_framework import filters, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from apps.misc.schema import (
+    itinerary_template_featured_schema,
+    itinerary_template_viewset_schema,
+    planner_faq_viewset_schema,
+    smart_suggestion_viewset_schema,
+    travel_plan_viewset_schema,
+)
 from .models import ItineraryTemplate, PlannerFaq, SmartSuggestion, TravelPlan
 from .serializers import (
     ItineraryTemplateSerializer,
@@ -8,13 +15,6 @@ from .serializers import (
     SmartSuggestionSerializer,
     TravelPlanSerializer,
     TravelPlanWriteSerializer,
-)
-from .schema import (
-    itinerary_template_featured_schema,
-    itinerary_template_viewset_schema,
-    planner_faq_viewset_schema,
-    smart_suggestion_viewset_schema,
-    travel_plan_viewset_schema,
 )
 
 
@@ -35,6 +35,7 @@ class ItineraryTemplateViewSet(viewsets.ReadOnlyModelViewSet):
 
 @travel_plan_viewset_schema
 class TravelPlanViewSet(viewsets.ModelViewSet):
+    queryset = TravelPlan.objects.select_related("based_on_template").prefetch_related("days__items")
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["title", "destination", "country"]
@@ -42,10 +43,10 @@ class TravelPlanViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
 
     def get_queryset(self):
+        if not getattr(self.request, "user", None) or not self.request.user.is_authenticated:
+            return TravelPlan.objects.none()
         return (
-            TravelPlan.objects.filter(user=self.request.user)
-            .select_related("based_on_template")
-            .prefetch_related("days__items")
+            self.queryset.filter(user=self.request.user)
         )
 
     def get_serializer_class(self):

@@ -1,19 +1,19 @@
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from apps.misc.schema import (
+    destination_featured_schema,
+    destination_viewset_schema,
+    package_category_viewset_schema,
+    travel_package_featured_schema,
+    travel_package_viewset_schema,
+)
 from .models import Destination, PackageCategory, TravelPackage
 from .serializers import (
     DestinationSerializer,
     PackageCategorySerializer,
     TravelPackageSerializer,
     TravelPackageWriteSerializer,
-)
-from .schema import (
-    destination_featured_schema,
-    destination_viewset_schema,
-    package_category_viewset_schema,
-    travel_package_featured_schema,
-    travel_package_viewset_schema,
 )
 
 

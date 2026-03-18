@@ -1,12 +1,12 @@
 from rest_framework import filters, viewsets
-from .models import Airline, Airport, Flight, FlightRoute, FlightSearch
-from .schema import (
+from apps.misc.schema import (
     airline_viewset_schema,
     airport_viewset_schema,
     flight_route_viewset_schema,
     flight_search_viewset_schema,
     flight_viewset_schema,
 )
+from .models import Airline, Airport, Flight, FlightRoute, FlightSearch
 from .serializers import (
     AirlineSerializer,
     AirportSerializer,

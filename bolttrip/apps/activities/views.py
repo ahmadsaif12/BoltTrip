@@ -1,17 +1,17 @@
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from apps.misc.schema import (
+    activity_category_featured_schema,
+    activity_category_viewset_schema,
+    activity_featured_schema,
+    activity_viewset_schema,
+)
 from .models import Activity, ActivityCategory
 from .serializers import (
     ActivityCategorySerializer,
     ActivitySerializer,
     ActivityWriteSerializer,
-)
-from .schema import (
-    activity_category_featured_schema,
-    activity_category_viewset_schema,
-    activity_featured_schema,
-    activity_viewset_schema,
 )
 
 

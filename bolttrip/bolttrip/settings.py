@@ -120,4 +120,9 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'BoltTrip API',
     'DESCRIPTION': 'API documentation for BoltTrip.',
     'VERSION': '1.0.0',
+    'ENUM_NAME_OVERRIDES': {
+        'MaritalStatusEnum': 'apps.users.models.MaritalStatus',
+        'GuideProfileStatusEnum': 'apps.users.models.GuideProfileStatus',
+        'TravelPlanStatusEnum': 'apps.planner.models.TravelPlanStatus',
+    },
 }
