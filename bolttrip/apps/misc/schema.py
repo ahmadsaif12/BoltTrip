@@ -324,3 +324,10 @@ notification_viewset_schema = extend_schema_view(
     partial_update=extend_schema(tags=["Notifications"]),
     destroy=extend_schema(tags=["Notifications"]),
 )
+
+
+dashboard_view_schema = extend_schema(
+    tags=["Dashboard"],
+    summary="Get dashboard statistics",
+    description="Return aggregated booking and room statistics for the admin dashboard.",
+)
