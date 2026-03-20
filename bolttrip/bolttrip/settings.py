@@ -3,26 +3,25 @@ from pathlib import Path
 from dotenv import load_dotenv
 from datetime import timedelta
 
-#Base
+#base
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-#Security
+#security settings
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError("SECRET_KEY environment variable is not set. Please set it in .env file.")
+    raise ValueError("SECRET_KEY environment variable is not set in .env.")
 
 DEBUG = os.getenv("DEBUG", "0") == "1"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-
-if not ALLOWED_HOSTS or ALLOWED_HOSTS == ['']:
-    raise ValueError("ALLOWED_HOSTS environment variable is not set. Please configure it in .env file.")
+if not ALLOWED_HOSTS or ALLOWED_HOSTS == [""]:
+    raise ValueError("ALLOWED_HOSTS not set in .env.")
 
 AUTH_USER_MODEL = 'users.User'
 
-#Applications
+#installed apps configuration
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -34,13 +33,13 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-     'rest_framework',
-     'drf_spectacular',
-     'corsheaders',
+    'rest_framework',
+    'drf_spectacular',
+    'corsheaders',
 ]
 
 LOCAL_APPS = [
-    'apps.users',  
+    'apps.users',
     'apps.misc',
     'apps.hotel',
     'apps.flights',
@@ -54,7 +53,8 @@ LOCAL_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-#middleware
+# middleware configuration
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -66,11 +66,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-#urls/wsgi
+
 ROOT_URLCONF = 'bolttrip.urls'
 WSGI_APPLICATION = 'bolttrip.wsgi.application'
 
-#templates
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -86,7 +86,8 @@ TEMPLATES = [
     },
 ]
 
-#database config
+#database configuration
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -106,23 +107,36 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
 USE_TZ = True
 
 #static files
+
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+#email configuration
 
-#celery/redis
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_USE_TLS = bool(int(os.getenv("EMAIL_USE_TLS", 1)))
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+if not EMAIL_HOST_PASSWORD:
+    raise ValueError("EMAIL_HOST_PASSWORD is not set. Use a Gmail App Password with 2FA enabled.")
+
+#celery configuration
+
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+# ─── REST FRAMEWORK ─────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -138,10 +152,9 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle'
     ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
-        'user': '1000/hour'
-    }
+    'DEFAULT_THROTTLE_RATES': {'anon': '100/hour', 'user': '1000/hour'},
+    'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
+    'EXCEPTION_HANDLER': 'bolttrip.exceptions.custom_exception_handler',
 }
 
 SPECTACULAR_SETTINGS = {
@@ -160,44 +173,31 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-# CORS Configuration
+#cors
+
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if os.getenv("CORS_ALLOWED_ORIGINS") else []
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
+    'accept', 'accept-encoding', 'authorization', 'content-type',
+    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with'
 ]
 
-# Security Headers
+#security headers
+
 SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_SECURITY_POLICY = {
-    'default-src': ("'self'",),
-    'script-src': ("'self'", "'unsafe-inline'"),
-    'style-src': ("'self'", "'unsafe-inline'"),
-    'img-src': ("'self'", "data:", "https:"),
-}
 X_FRAME_OPTIONS = 'DENY'
 
-# HTTPS and Security
 if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
-# Logging Configuration
+#logging
 import logging.handlers
 
-# Create logs directory if it doesn't exist (only in production)
 LOGS_DIR = BASE_DIR / 'logs'
 if not DEBUG and not LOGS_DIR.exists():
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
@@ -206,61 +206,27 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {asctime} {message}',
-            'style': '{',
-        },
-    },
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
+        'verbose': {'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}', 'style': '{'},
+        'simple': {'format': '{levelname} {asctime} {message}', 'style': '{'},
     },
     'handlers': {
-        'console': {
-            'level': 'INFO' if DEBUG else 'WARNING',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
+        'console': {'level': 'INFO' if DEBUG else 'WARNING', 'class': 'logging.StreamHandler', 'formatter': 'simple'},
     },
     'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'rest_framework': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'apps': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
+        'django': {'handlers': ['console'], 'level': 'INFO'},
+        'rest_framework': {'handlers': ['console'], 'level': 'INFO'},
+        'apps': {'handlers': ['console'], 'level': 'INFO'},
     },
 }
 
-# Add file handler only in production
 if not DEBUG and LOGS_DIR.exists():
     LOGGING['handlers']['file'] = {
         'level': 'ERROR',
         'class': 'logging.handlers.RotatingFileHandler',
         'filename': str(LOGS_DIR / 'bolttrip.log'),
-        'maxBytes': 1024 * 1024 * 10,  # 10MB
+        'maxBytes': 10 * 1024 * 1024,
         'backupCount': 5,
         'formatter': 'verbose',
     }
     for logger_name in ['django', 'apps']:
         LOGGING['loggers'][logger_name]['handlers'].append('file')
-
-# REST Framework Additional Settings
-REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
-    'rest_framework.renderers.JSONRenderer',
-]
-REST_FRAMEWORK['EXCEPTION_HANDLER'] = 'bolttrip.exceptions.custom_exception_handler'
