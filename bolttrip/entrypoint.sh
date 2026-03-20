@@ -5,6 +5,4 @@ while ! nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do
 done
 echo "PostgreSQL started"
 
-python manage.py collectstatic --noinput
-
 exec "$@"
