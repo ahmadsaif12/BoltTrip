@@ -1,5 +1,6 @@
 import secrets
 from rest_framework.generics import GenericAPIView
+from rest_framework import generics, permissions
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Count
@@ -35,7 +36,7 @@ from apps.misc.schema import (
     wishlist_viewset_schema,
 )
 
-from .models import GuideProfile, Notification, User, UserOTP, UserProfile, Wishlist
+from .models import GuideProfile, Notification, User, UserOTP, UserPreference, UserProfile, Wishlist
 from .serializers import (
     ChangePasswordSerializer,
     GuideProfileCompareSerializer,
@@ -51,7 +52,7 @@ from .serializers import (
     UserProfileSerializer,
     UserRegistrationSerializer,
     UserSerializer,
-    WishlistSerializer,
+    WishlistSerializer,UserPreferenceSerializer
 )
 from .tasks import send_email_task, send_otp_email_task
 
@@ -274,3 +275,12 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class UserPreferenceView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserPreferenceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        preference, _ = UserPreference.objects.get_or_create(user=self.request.user)
+        return preference

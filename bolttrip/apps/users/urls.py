@@ -10,6 +10,7 @@ from .views import (
     ResetPasswordAPIView,
     ResetPasswordConfirmAPIView,
     RequestOTPView,
+    UserPreferenceView,
     UserRegistrationView,
     UserTokenObtainPairView,
     UserTokenRefreshView,
@@ -44,4 +45,5 @@ urlpatterns = [
     ),
     path("guide/compare/", GuideCompareAPIView.as_view(), name="guide-compare"),
     path("guide/most-booked/", MostBookedGuidesAPIView.as_view(), name="most-booked-guide"),
+    path("preferences/", UserPreferenceView.as_view(), name="user-preferences"),
 ]

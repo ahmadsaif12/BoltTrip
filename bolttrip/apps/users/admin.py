@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import GuideProfile, Notification, User, UserOTP, UserProfile, Wishlist
+from .models import GuideProfile, Notification, User, UserOTP, UserPreference, UserProfile, Wishlist
 
 
 @admin.register(User)
@@ -42,3 +42,8 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ("user", "notification_type", "is_read", "created_at")
     search_fields = ("user__email", "user__name", "message")
     list_filter = ("notification_type", "is_read")
+
+@admin.register(UserPreference)
+class UserPreferenceAdmin(admin.ModelAdmin):
+    list_display = ("user", "language", "appearance", "currency", "updated_at")
+    search_fields = ("user__username", "user__email")

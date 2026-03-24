@@ -8,6 +8,15 @@ from decimal import Decimal
 
 from apps.misc.models import BaseModel
 
+from apps.misc.const import (
+    LANGUAGE_CHOICES,
+    APPEARANCE_CHOICES,
+    CURRENCY_CHOICES,
+    DEFAULT_LANGUAGE,
+    DEFAULT_APPEARANCE,
+    DEFAULT_CURRENCY,
+)
+
 from .manager import CustomUserManager
 
 
@@ -18,7 +27,18 @@ class TimeStampedModel(models.Model):
     class Meta:
         abstract = True
 
-
+class UserPreference(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="preference",
+    )
+    language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES, default=DEFAULT_LANGUAGE)
+    appearance = models.CharField(max_length=20, choices=APPEARANCE_CHOICES, default=DEFAULT_APPEARANCE)
+    currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default=DEFAULT_CURRENCY)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
 class UserType(models.TextChoices):
     TRAVELER = "traveler", "Traveler"
     COMPANY = "company", "Travel Company"

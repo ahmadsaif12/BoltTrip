@@ -1,6 +1,6 @@
 import re
 from rest_framework import serializers
-from .models import GuideProfile, Notification, User, UserOTP, UserProfile, Wishlist
+from .models import GuideProfile, Notification, User, UserOTP, UserPreference, UserProfile, Wishlist
 
 def password_validator(value):
     if len(value) < 8:
@@ -157,3 +157,16 @@ class MostBookedGuideSerializer(serializers.ModelSerializer):
             "id", "guide_name", "profile_photo", "guide_type", "base_city", "base_country",
             "rating", "is_verified", "is_available", "bookings_count"
         ]
+        
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPreference
+        fields = [
+            "id",
+            "language",
+            "appearance",
+            "currency",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]

@@ -9,3 +9,4 @@ python-dotenv
 django-cors-headers
 gunicorn
 whitenoise
+django-cors-headers
