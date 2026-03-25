@@ -1,9 +1,9 @@
-name: Django CI (Docker)
+name: Local cicd 
 
 on:
   push:
     branches:
-      - master  
+      - master   
 
 jobs:
   build:
@@ -13,43 +13,40 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug files
-        run: ls -R
-
       - name: Create .env file
         run: |
-          echo "SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> bolttrip/.env
+          echo "SECRET_KEY=test" >> bolttrip/.env
           echo "DEBUG=1" >> bolttrip/.env
-          echo "DB_NAME=${{ secrets.DB_NAME }}" >> bolttrip/.env
-          echo "DB_USER=${{ secrets.DB_USER }}" >> bolttrip/.env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> bolttrip/.env
+          echo "DB_NAME=postgres" >> bolttrip/.env
+          echo "DB_USER=postgres" >> bolttrip/.env
+          echo "DB_PASSWORD=postgres" >> bolttrip/.env
           echo "DB_HOST=db" >> bolttrip/.env
           echo "DB_PORT=5432" >> bolttrip/.env
 
-      - name: Build containers
+      - name: Build web container
         working-directory: bolttrip
-        run: docker compose build
-
-      - name: Start containers
+        run: docker compose build web
+        
+      - name: Start services
         working-directory: bolttrip
-        run: docker compose up -d
+        run: docker compose up -d web db redis
 
       - name: Show running containers
         working-directory: bolttrip
         run: docker compose ps
 
-      - name: Show logs (IMPORTANT)
+      - name: Show logs
         working-directory: bolttrip
         run: docker compose logs
 
-      - name: Wait for containers
+      - name: Wait for DB
         run: sleep 15
-        
-      - name: Run migrations
+
+      - name: Migrate
         working-directory: bolttrip
         run: docker compose exec -T web python manage.py migrate --noinput
 
-      - name: Run tests
+      - name: Test
         working-directory: bolttrip
         run: docker compose exec -T web python manage.py test
 
