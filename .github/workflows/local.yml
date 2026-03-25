@@ -13,56 +13,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ✅ Create env file (FULL for postgres + django)
       - name: Create .env file
         run: |
           echo "SECRET_KEY=test" >> bolttrip/.env
           echo "DEBUG=1" >> bolttrip/.env
-          echo "POSTGRES_DB=postgres" >> bolttrip/.env
+          echo "POSTGRES_DB=bolttrip" >> bolttrip/.env
           echo "POSTGRES_USER=postgres" >> bolttrip/.env
           echo "POSTGRES_PASSWORD=postgres" >> bolttrip/.env
-          echo "DB_NAME=postgres" >> bolttrip/.env
-          echo "DB_USER=postgres" >> bolttrip/.env
-          echo "DB_PASSWORD=postgres" >> bolttrip/.env
-          echo "DB_HOST=db" >> bolttrip/.env
-          echo "DB_PORT=5432" >> bolttrip/.env
+          echo "POSTGRES_HOST=db" >> bolttrip/.env
+          echo "POSTGRES_PORT=5432" >> bolttrip/.env
+          echo "REDIS_URL=redis://redis:6379/0" >> bolttrip/.env
+          echo "CELERY_BROKER_URL=redis://redis:6379/0" >> bolttrip/.env
+          echo "CELERY_RESULT_BACKEND=redis://redis:6379/0" >> bolttrip/.env
 
-      # ✅ Build only web (skip celery)
       - name: Build web container
         working-directory: bolttrip
         run: docker compose build web
 
-      # ✅ Start required services
       - name: Start services
         working-directory: bolttrip
         run: docker compose up -d web db redis
 
-      # ✅ Wait until Postgres is REALLY ready (important fix)
-      - name: Wait for database
-        working-directory: bolttrip
+      - name: Wait for Postgres
         run: |
-          echo "Waiting for postgres..."
-          until docker compose exec -T db pg_isready -U postgres; do
+          for i in {1..30}; do
+            if docker compose exec db pg_isready -U postgres > /dev/null 2>&1; then
+              break
+            fi
             sleep 2
           done
-          echo "Postgres is ready!"
 
-      # ✅ Debug (optional but helpful)
-      - name: Show containers
-        working-directory: bolttrip
-        run: docker compose ps
-
-      # ✅ Run migrations
       - name: Run migrations
         working-directory: bolttrip
         run: docker compose exec -T web python manage.py migrate --noinput
 
-      # ✅ Run tests
       - name: Run tests
         working-directory: bolttrip
-        run: docker compose exec -T web python manage.py test --verbosity=2
+        run: docker compose exec -T web python manage.py test
 
-      # ✅ Always cleanup
       - name: Stop containers
         if: always()
         working-directory: bolttrip
