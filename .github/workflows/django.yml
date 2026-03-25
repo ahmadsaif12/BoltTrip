@@ -1,0 +1,44 @@
+name: Django CI (Docker)
+
+on:
+  push:
+    branches:
+      - master   
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .env
+          echo "DEBUG=1" >> .env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_HOST=db" >> .env
+          echo "DB_PORT=5432" >> .env
+
+      - name: Build containers
+        run: docker compose build
+
+      - name: Start containers
+        run: docker compose up -d
+
+      - name: Wait for DB
+        run: |
+          echo "Waiting for database..."
+          sleep 10
+
+      - name: Run migrations
+        run: docker compose exec -T web python manage.py migrate --noinput
+
+      - name: Run tests
+        run: docker compose exec -T web python manage.py test
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down
