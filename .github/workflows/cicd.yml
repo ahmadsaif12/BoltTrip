@@ -5,15 +5,19 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+    
+env:
+  PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 jobs:
+  
   build:
     runs-on: self-hosted
     strategy:
       max-parallel: 4
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-        
+
     env:
       SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       DEBUG: "1"
@@ -26,6 +30,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Verify Docker is accessible
+        run: |
+          which docker
+          docker --version
+          docker compose version
 
       - name: Start PostgreSQL container
         run: |
@@ -64,7 +74,7 @@ jobs:
       - name: Stop and remove PostgreSQL container
         if: always()
         run: docker rm -f pg_test_${{ matrix.python-version }}
-        
+
   deploy:
     runs-on: self-hosted
     needs: build
@@ -78,6 +88,9 @@ jobs:
     steps:
       - name: Checkout latest code
         uses: actions/checkout@v4
+
+      - name: Copy .env into workspace
+        run: cp /home/ubuntu/BoltTrip/bolttrip/.env $GITHUB_WORKSPACE/.env
 
       - name: Rebuild Docker image
         run: docker compose build
