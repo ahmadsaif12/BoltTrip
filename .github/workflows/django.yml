@@ -9,7 +9,7 @@ on:
 jobs:
  
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted 
 
     strategy:
       max-parallel: 4
@@ -61,7 +61,7 @@ jobs:
         run: python manage.py test --verbosity=2
         
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted 
     needs: build                           
     if: github.event_name == 'push'         
 
