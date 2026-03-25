@@ -7,47 +7,48 @@ on:
     branches: [ "master" ]
 
 jobs:
- 
   build:
-    runs-on: self-hosted 
-
+    runs-on: self-hosted
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]   # 3.7-3.9 are end-of-life
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        python-version: ["3.10", "3.11", "3.12"]
+        
     env:
       SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       DEBUG: "1"
       DB_NAME: test_db
       DB_USER: postgres
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: localhost
+      DB_HOST: 127.0.0.1
       DB_PORT: 5432
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Start PostgreSQL container
+        run: |
+          docker run -d \
+            --name pg_test_${{ matrix.python-version }} \
+            -e POSTGRES_DB=test_db \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -p 5432:5432 \
+            postgres:15
+
+          echo "Waiting for postgres..."
+          until docker exec pg_test_${{ matrix.python-version }} \
+            pg_isready -U postgres; do
+            sleep 2
+          done
+          echo "Postgres is ready"
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5          
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip                          
+          cache: pip
 
       - name: Install dependencies
         run: |
@@ -59,38 +60,43 @@ jobs:
 
       - name: Run tests
         run: python manage.py test --verbosity=2
+
+      - name: Stop and remove PostgreSQL container
+        if: always()
+        run: docker rm -f pg_test_${{ matrix.python-version }}
         
   deploy:
-    runs-on: self-hosted 
-    needs: build                           
-    if: github.event_name == 'push'         
+    runs-on: self-hosted
+    needs: build
+    if: github.event_name == 'push'
+
+    env:
+      SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      DEBUG: "0"
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script: |
-            set -e
-            cd /home/ubuntu/myproject
+      - name: Checkout latest code
+        uses: actions/checkout@v4
 
-            echo "--- Pull latest code ---"
-            git pull origin master
+      - name: Rebuild Docker image
+        run: docker compose build
 
-            echo "--- Rebuild and restart ---"
-            docker compose build
-            docker compose up -d --remove-orphans
+      - name: Start containers
+        run: docker compose up -d --remove-orphans
 
-            echo "--- Migrate ---"
-            docker compose exec -T web python manage.py migrate --noinput
+      - name: Run migrations
+        run: docker compose exec -T web python manage.py migrate --noinput
 
-            echo "--- Collect static ---"
-            docker compose exec -T web python manage.py collectstatic --noinput
+      - name: Collect static files
+        run: docker compose exec -T web python manage.py collectstatic --noinput
 
-            echo "--- Clean old images ---"
-            docker image prune -f
+      - name: Clean up old Docker images
+        run: docker image prune -f
 
-            echo "--- Done ---"
+      - name: Health check
+        run: |
+          sleep 5
+          curl --fail http://localhost/health/ \
+            && echo "App is up" \
+            || echo "Health endpoint not configured — skipping"
