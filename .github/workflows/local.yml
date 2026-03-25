@@ -3,7 +3,7 @@ name: Django CI (Docker)
 on:
   push:
     branches:
-      - master   
+      - master  
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug project structure
+      - name: Debug files
         run: ls -R
 
       - name: Create .env file
@@ -34,9 +34,17 @@ jobs:
         working-directory: bolttrip
         run: docker compose up -d
 
-      - name: Wait for DB
-        run: sleep 10
+      - name: Show running containers
+        working-directory: bolttrip
+        run: docker compose ps
 
+      - name: Show logs (IMPORTANT)
+        working-directory: bolttrip
+        run: docker compose logs
+
+      - name: Wait for containers
+        run: sleep 15
+        
       - name: Run migrations
         working-directory: bolttrip
         run: docker compose exec -T web python manage.py migrate --noinput
