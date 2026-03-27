@@ -18,10 +18,16 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from apps.content.views import FAQViewSet
+from apps.tours.views import TourTypeViewSet
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    # Backward-compatible aliases (some clients call these without the /api/ prefix)
+    path("faqs/", FAQViewSet.as_view({"get": "list"}), name="faqs-alias"),
+    path("tour-types/", TourTypeViewSet.as_view({"get": "list"}), name="tour-types-alias"),
     path('api/misc/', include('apps.misc.urls')),
     path('api/users/', include('apps.users.urls')),
     path('api/flights/', include('apps.flights.urls')),

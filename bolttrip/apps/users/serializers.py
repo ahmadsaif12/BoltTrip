@@ -1,5 +1,13 @@
 import re
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
+
+try:
+    from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+    SIMPLEJWT_AVAILABLE = True
+except ImportError:
+    SIMPLEJWT_AVAILABLE = False
+
 from .models import GuideProfile, Notification, User, UserOTP, UserPreference, UserProfile, Wishlist
 
 def password_validator(value):
@@ -24,6 +32,23 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "is_staff", "is_active", "created_at", "updated_at"]
 
+if SIMPLEJWT_AVAILABLE:
+    class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
+        """
+        JWT login serializer that returns tokens + basic user payload for the frontend.
+        """
+
+        def validate(self, attrs):
+            data = super().validate(attrs)
+
+            if not getattr(self.user, "is_active", True):
+                raise AuthenticationFailed("Account not verified.")
+
+            data["user"] = UserSerializer(self.user).data
+            return data
+else:
+    UserTokenObtainPairSerializer = None
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[password_validator])
 
@@ -33,8 +58,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def create(self, validated_data):
-        password = validated_data.pop("password")
-        return User.objects.create_user(password=password, **validated_data)
+        return User.objects.create_user(**validated_data)
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,7 +72,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "budget_range", "price_sensitivity_level", "created_at", "updated_at"
         ]
         read_only_fields = ["id", "user", "created_at", "updated_at"]
-
 
 class GuideProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -70,7 +93,6 @@ class GuideProfileSerializer(serializers.ModelSerializer):
             "force_availability_override", "created_at", "updated_at"
         ]
         read_only_fields = ["id", "user", "created_at", "updated_at"]
-
 
 class GuideProfileCompareSerializer(serializers.ModelSerializer):
     guide_name = serializers.CharField(source="user.name", read_only=True)
@@ -113,17 +135,21 @@ class OTPRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 class OTPVerifySerializer(serializers.Serializer):
-    user_id = serializers.UUIDField()
+    email = serializers.EmailField()
     otp = serializers.CharField(max_length=6)
 
     def validate(self, attrs):
-        user_id = attrs["user_id"]
-        otp = attrs["otp"]
-        otp_record = UserOTP.objects.filter(user_id=user_id, otp=otp, is_verified=False).first()
-        if not otp_record:
-            raise serializers.ValidationError("Invalid or expired OTP.")
-        attrs["otp_record"] = otp_record
-        return attrs
+        email = attrs.get("email")
+        otp = attrs.get("otp")
+        try:
+            user = User.objects.get(email=email)
+            otp_record = UserOTP.objects.filter(user=user, otp=otp, is_verified=False).first()
+            if not otp_record:
+                raise serializers.ValidationError("Invalid or expired OTP.")
+            attrs["otp_record"] = otp_record
+            return attrs
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User not found.")
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -157,16 +183,9 @@ class MostBookedGuideSerializer(serializers.ModelSerializer):
             "id", "guide_name", "profile_photo", "guide_type", "base_city", "base_country",
             "rating", "is_verified", "is_available", "bookings_count"
         ]
-        
+
 class UserPreferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserPreference
-        fields = [
-            "id",
-            "language",
-            "appearance",
-            "currency",
-            "created_at",
-            "updated_at",
-        ]
+        fields = ["id", "language", "appearance", "currency", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]

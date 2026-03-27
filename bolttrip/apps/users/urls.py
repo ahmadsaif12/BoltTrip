@@ -10,6 +10,7 @@ from .views import (
     ResetPasswordAPIView,
     ResetPasswordConfirmAPIView,
     RequestOTPView,
+    VerifyEmailLinkView,
     UserPreferenceView,
     UserRegistrationView,
     UserTokenObtainPairView,
@@ -22,6 +23,7 @@ from .views import (
 
 app_name = "user"
 
+# 1. Setup Router
 router = DefaultRouter()
 router.register(r"account", UserViewSet, basename="user")
 router.register(r"profiles", UserProfileViewSet, basename="user-profiles")
@@ -29,11 +31,17 @@ router.register(r"guides", GuideProfileViewSet, basename="guide-profiles")
 router.register(r"wishlist", WishlistViewSet, basename="user-wishlist")
 router.register(r"notifications", NotificationViewSet, basename="notifications")
 
+
 urlpatterns = [
-    path("", include(router.urls)),
+    
     path("register/", UserRegistrationView.as_view(), name="user-register"),
     path("login/", UserTokenObtainPairView.as_view(), name="user-login"),
     path("token/refresh/", UserTokenRefreshView.as_view(), name="token-refresh"),
+    path(
+        "verify-email/<str:uidb64>/<str:token>/",
+        VerifyEmailLinkView.as_view(),
+        name="verify-email",
+    ),
     path("verify-otp/", VerifyOTPView.as_view(), name="verify-otp"),
     path("request-otp/", RequestOTPView.as_view(), name="request-otp"),
     path("change-password/", ChangePasswordAPIView.as_view(), name="change-password"),
@@ -43,7 +51,10 @@ urlpatterns = [
         ResetPasswordConfirmAPIView.as_view(),
         name="reset-password-confirm",
     ),
+
     path("guide/compare/", GuideCompareAPIView.as_view(), name="guide-compare"),
     path("guide/most-booked/", MostBookedGuidesAPIView.as_view(), name="most-booked-guide"),
     path("preferences/", UserPreferenceView.as_view(), name="user-preferences"),
+
+    path("", include(router.urls)),
 ]
