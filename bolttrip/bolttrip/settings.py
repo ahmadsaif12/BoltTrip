@@ -94,7 +94,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
-CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -112,7 +111,6 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
@@ -125,4 +123,18 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'SIGNING_KEY': os.getenv('JWT_SECRET_KEY', 'your-default-32-byte-or-longer-secret-key-12345'),
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'BoltTrip API',
+    'DESCRIPTION': 'BoltTrip Travel API',
+    'VERSION': '1.0.0',
+    'ENUM_NAME_OVERRIDES': {
+        'apps.users.models.MaritalStatus': 'UserProfileMaritalStatusEnum',
+        'apps.users.models.GuideProfileStatus': 'GuideProfileStatusEnum',
+        'apps.bookings.models.BookingStatus': 'BookingStatusEnum',
+        'apps.users.models.ThemeChoice': 'UserPreferenceThemeEnum',
+    },
+}
+

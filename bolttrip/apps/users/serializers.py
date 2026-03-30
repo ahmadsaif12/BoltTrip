@@ -1,14 +1,14 @@
 import re
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
+from drf_spectacular.utils import extend_schema_field
+from .models import GuideProfile, Notification, User, UserOTP, UserPreference, UserProfile, Wishlist, MaritalStatus, ThemeChoice, GuideProfileStatus
 
 try:
     from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
     SIMPLEJWT_AVAILABLE = True
 except ImportError:
     SIMPLEJWT_AVAILABLE = False
-
-from .models import GuideProfile, Notification, User, UserOTP, UserPreference, UserProfile, Wishlist
 
 def password_validator(value):
     if len(value) < 8:
@@ -61,6 +61,17 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    status = serializers.ChoiceField(
+        choices=MaritalStatus.choices, 
+        required=False,
+        help_text="User marital status (Unmarried, Married, Divorced, Widowed)"
+    )
+    theme = serializers.ChoiceField(
+        choices=ThemeChoice.choices, 
+        required=False,
+        help_text="UI theme preference (Light or Dark)"
+    )
+    
     class Meta:
         model = UserProfile
         fields = [
@@ -75,6 +86,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class GuideProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    status = serializers.ChoiceField(
+        choices=GuideProfileStatus.choices, 
+        required=False,
+        help_text="Guide profile status (Pending Affiliation, Active, Inactive, Suspended)"
+    )
 
     class Meta:
         model = GuideProfile
@@ -110,6 +126,7 @@ class GuideProfileCompareSerializer(serializers.ModelSerializer):
             "availability_status", "rating", "gallery_images", "affiliated_travel_company"
         ]
 
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
     def get_region_served(self, obj):
         return obj.region_expertise or []
 
