@@ -1,5 +1,5 @@
 from rest_framework import filters, viewsets
-from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from apps.misc.schema import (
     airline_viewset_schema,
     airport_viewset_schema,
@@ -57,9 +57,18 @@ class FlightRouteViewSet(viewsets.ReadOnlyModelViewSet):
 
 @flight_viewset_schema
 class FlightViewSet(viewsets.ModelViewSet):
-    queryset = Flight.objects.select_related("airline", "route__origin", "route__destination").filter(is_active=True)
+    queryset = Flight.objects.select_related(
+        "airline",
+        "route__origin",
+        "route__destination"
+    ).filter(is_active=True)
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["flight_number", "airline__name", "route__origin__city", "route__destination__city"]
+    search_fields = [
+        "flight_number",
+        "airline__name",
+        "route__origin__city",
+        "route__destination__city"
+    ]
     ordering_fields = ["departure_time", "arrival_time", "base_price", "created_at"]
     http_method_names = ["get", "post", "patch", "delete"]
 

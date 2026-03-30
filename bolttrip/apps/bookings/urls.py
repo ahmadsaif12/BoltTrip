@@ -33,4 +33,24 @@ urlpatterns = [
         BookingPaymentViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}),
         name="booking-payment-detail",
     ),
+    path(
+        "payments/initiate_esewa/",
+        BookingPaymentViewSet.as_view({"post": "initiate_esewa"}),
+        name="booking-payment-initiate-esewa",
+    ),
+    path(
+        "payments/initiate_khalti/",
+        BookingPaymentViewSet.as_view({"post": "initiate_khalti"}),
+        name="booking-payment-initiate-khalti",
+    ),
+    path(
+        "payments/verify_esewa/",
+        BookingPaymentViewSet.as_view({"post": "verify_esewa"}),
+        name="booking-payment-verify-esewa",
+    ),
+    path(
+        "payments/verify_khalti/",
+        BookingPaymentViewSet.as_view({"post": "verify_khalti"}),
+        name="booking-payment-verify-khalti",
+    ),
 ]

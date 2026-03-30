@@ -50,7 +50,6 @@ class AirportSerializer(serializers.ModelSerializer):
             "icao_code",
         ]
 
-
 class FlightRouteSerializer(serializers.ModelSerializer):
     origin = AirportSerializer(read_only=True)
     destination = AirportSerializer(read_only=True)
@@ -63,10 +62,10 @@ class FlightRouteSerializer(serializers.ModelSerializer):
             "destination",
         ]
 
-
 class FlightSerializer(serializers.ModelSerializer):
     airline = AirlineSerializer(read_only=True)
     route = FlightRouteSerializer(read_only=True)
+    duration_minutes = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Flight
@@ -86,7 +85,6 @@ class FlightSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-
 
 class FlightWriteSerializer(serializers.ModelSerializer):
     base_price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.00"))
@@ -122,10 +120,9 @@ class FlightWriteSerializer(serializers.ModelSerializer):
             attrs["currency"] = attrs["currency"].upper()
         return attrs
 
-
 class FlightSearchSerializer(serializers.ModelSerializer):
-    origin = AirportSerializer(read_only=True)
-    destination = AirportSerializer(read_only=True)
+    origin = AirportSerializer()
+    destination = AirportSerializer()
 
     class Meta:
         model = FlightSearch

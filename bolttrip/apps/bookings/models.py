@@ -34,6 +34,8 @@ class PaymentMethod(models.TextChoices):
     BANK_TRANSFER = "bank_transfer", "Bank Transfer"
     WALLET = "wallet", "Wallet"
     CASH = "cash", "Cash"
+    ESEWA = "esewa", "eSewa"
+    KHALTI = "khalti", "Khalti"
     OTHER = "other", "Other"
 
 
