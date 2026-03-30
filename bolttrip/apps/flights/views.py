@@ -1,3 +1,4 @@
+from datetime import date
 from rest_framework import filters, viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from apps.misc.schema import (
@@ -35,7 +36,7 @@ class AirlineViewSet(viewsets.ModelViewSet):
         return AirlineSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAuthenticated()]
         return [AllowAny()]
 
@@ -57,20 +58,34 @@ class FlightRouteViewSet(viewsets.ReadOnlyModelViewSet):
 
 @flight_viewset_schema
 class FlightViewSet(viewsets.ModelViewSet):
-    queryset = Flight.objects.select_related(
-        "airline",
-        "route__origin",
-        "route__destination"
-    ).filter(is_active=True)
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = [
         "flight_number",
         "airline__name",
         "route__origin__city",
-        "route__destination__city"
+        "route__origin__iata_code",
+        "route__destination__city",
+        "route__destination__iata_code",
     ]
     ordering_fields = ["departure_time", "arrival_time", "base_price", "created_at"]
     http_method_names = ["get", "post", "patch", "delete"]
+
+    def get_queryset(self):
+        qs = Flight.objects.select_related(
+            "airline",
+            "route__origin",
+            "route__destination",
+        ).filter(is_active=True)
+
+        departure_date = self.request.query_params.get("departure_date")
+        if departure_date:
+            try:
+                date.fromisoformat(departure_date)
+                qs = qs.filter(departure_time__date=departure_date)
+            except ValueError:
+                pass
+
+        return qs
 
     def get_serializer_class(self):
         if self.action in {"create", "partial_update"}:
@@ -78,7 +93,7 @@ class FlightViewSet(viewsets.ModelViewSet):
         return FlightSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAuthenticated()]
         return [AllowAny()]
 
@@ -97,6 +112,6 @@ class FlightSearchViewSet(viewsets.ModelViewSet):
         return FlightSearchSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAuthenticated()]
         return [AllowAny()]
