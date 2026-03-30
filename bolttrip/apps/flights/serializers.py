@@ -15,6 +15,29 @@ class AirlineSerializer(serializers.ModelSerializer):
         ]
 
 
+class AirlineWriteSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=120, required=True)
+    iata_code = serializers.CharField(max_length=2, required=False, allow_blank=True)
+    icao_code = serializers.CharField(max_length=3, required=False, allow_blank=True)
+    logo_url = serializers.URLField(required=False, allow_blank=True)
+
+    class Meta:
+        model = Airline
+        fields = [
+            "id",
+            "name",
+            "iata_code",
+            "icao_code",
+            "logo_url",
+        ]
+        read_only_fields = ["id"]
+
+    def validate_name(self, value):
+        if len(value.strip()) == 0:
+            raise serializers.ValidationError("Airline name cannot be empty.")
+        return value
+
+
 class AirportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airport

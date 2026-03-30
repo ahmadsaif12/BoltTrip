@@ -15,12 +15,12 @@ urlpatterns = [
     ),
     path(
         "airlines/",
-        AirlineViewSet.as_view({"get": "list"}),
+        AirlineViewSet.as_view({"get": "list", "post": "create"}),
         name="airline-list",
     ),
     path(
         "airlines/<int:pk>/",
-        AirlineViewSet.as_view({"get": "retrieve"}),
+        AirlineViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}),
         name="airline-detail",
     ),
     path(

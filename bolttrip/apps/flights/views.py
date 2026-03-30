@@ -10,6 +10,7 @@ from apps.misc.schema import (
 from .models import Airline, Airport, Flight, FlightRoute, FlightSearch
 from .serializers import (
     AirlineSerializer,
+    AirlineWriteSerializer,
     AirportSerializer,
     FlightRouteSerializer,
     FlightSearchSerializer,
@@ -20,12 +21,23 @@ from .serializers import (
 
 
 @airline_viewset_schema
-class AirlineViewSet(viewsets.ReadOnlyModelViewSet):
+class AirlineViewSet(viewsets.ModelViewSet):
     queryset = Airline.objects.all()
     serializer_class = AirlineSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name", "iata_code", "icao_code"]
     ordering_fields = ["name", "created_at"]
+    http_method_names = ["get", "post", "patch", "delete"]
+
+    def get_serializer_class(self):
+        if self.action in {"create", "partial_update"}:
+            return AirlineWriteSerializer
+        return AirlineSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAuthenticated()]
+        return [AllowAny()]
 
 
 @airport_viewset_schema
