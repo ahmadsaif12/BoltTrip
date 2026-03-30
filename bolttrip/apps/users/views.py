@@ -59,7 +59,7 @@ from .tasks import send_email_task, send_otp_email_task
 import random
 
 def generate_otp():
-    return str(random.randint(100000, 999999))  # 6-digit OTP
+    return str(random.randint(100000, 999999))  
 
 
 @user_register_schema
